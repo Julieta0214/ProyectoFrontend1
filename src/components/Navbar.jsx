@@ -57,3 +57,28 @@ const Navbar = () => {
             Soporte
           </button>
         </nav>
+
+         {/* Botones derecha */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/login")}
+            className="flex items-center gap-2 border border-[var(--color-secundario)] text-[var(--color-secundario)] px-4 py-2 rounded-lg hover:bg-[var(--color-secundario)] hover:text-white transition"
+          >
+            <LogIn size={16} />
+            Ingresar
+          </button>
+
+          <button
+            onClick={() => navigate("/registrar")}
+            className="flex items-center gap-2 bg-[var(--color-secundario)] text-white px-4 py-2 rounded-lg hover:scale-105 transition"
+          >
+            <UserPlus size={16} />
+            Registro
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Navbar;
