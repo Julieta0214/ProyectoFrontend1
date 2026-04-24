@@ -23,3 +23,29 @@ const Footer = () => {
               docentes, calificaciones y programas académicos.
             </p>
           </div>
+
+{/* Navegación */}
+          <div>
+            <h3 className="font-semibold text-lg mb-4">
+              Navegación
+            </h3>
+            <ul className="space-y-3 text-sm text-gray-300">
+              <li className="hover:text-white cursor-pointer transition">Inicio</li>
+              <li className="hover:text-white cursor-pointer transition">Iniciar sesión</li>
+              <li className="hover:text-white cursor-pointer transition">Funcionalidades</li>
+              <li className="hover:text-white cursor-pointer transition">Soporte</li>
+            </ul>
+          </div>
+
+          {/* Módulos */}
+          <div>
+            <h3 className="font-semibold text-lg mb-4">
+              Módulos
+            </h3>
+            <ul className="space-y-3 text-sm text-gray-300">
+              <li>Gestión de estudiantes</li>
+              <li>Registro de notas</li>
+              <li>Programas académicos</li>
+              <li>Reportes académicos</li>
+            </ul>
+          </div>
