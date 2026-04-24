@@ -26,3 +26,34 @@ const Navbar = () => {
             </p>
           </div>
         </div>
+
+         {/* Navegación central */}
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+          <button
+            onClick={() => navigate("/")}
+            className="hover:text-[var(--color-secundario)] transition"
+          >
+            Inicio
+          </button>
+
+          <button
+            onClick={() => navigate("/funcionalidades")}
+            className="hover:text-[var(--color-secundario)] transition"
+          >
+            Funcionalidades
+          </button>
+
+          <button
+            onClick={() => navigate("/nosotros")}
+            className="hover:text-[var(--color-secundario)] transition"
+          >
+            Nosotros
+          </button>
+
+          <button
+            onClick={() => navigate("/soporte")}
+            className="hover:text-[var(--color-secundario)] transition"
+          >
+            Soporte
+          </button>
+        </nav>
