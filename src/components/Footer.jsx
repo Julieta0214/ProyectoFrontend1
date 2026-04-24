@@ -49,3 +49,28 @@ const Footer = () => {
               <li>Reportes académicos</li>
             </ul>
           </div>
+
+          {/* Contacto */}
+          <div>
+            <h3 className="font-semibold text-lg mb-4">
+              Contacto
+            </h3>
+
+            <div className="space-y-3 text-sm text-gray-300">
+              <p className="flex items-center gap-2">
+                <Mail size={16} />
+                soporte@sistema.com
+              </p>
+
+              <p className="flex items-center gap-2">
+                <Phone size={16} />
+                +57 300 000 0000
+              </p>
+
+              <p className="flex items-center gap-2">
+                <MapPin size={16} />
+                Medellín, Colombia
+              </p>
+            </div>
+          </div>
+        </div>
