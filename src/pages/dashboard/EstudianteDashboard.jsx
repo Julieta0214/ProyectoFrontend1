@@ -295,3 +295,343 @@ const EstudianteDashboard = () => {
     } catch { alert("No se pudo guardar los cambios"); }
     finally { setGuardando(false); }
   };
+
+  const handleLogout = () => { localStorage.clear(); sessionStorage.clear(); navigate("/login"); };
+
+  const iniciales = perfil
+    ? `${perfil.nombreCompleto?.nombres?.[0] ?? ""}${perfil.nombreCompleto?.apellidos?.[0] ?? ""}`
+    : "ES";
+
+  const colorNota = (nota) => {
+    if (nota === null) return { color: "#888" };
+    return nota >= 3
+      ? { background: "#EAF3DE", color: "#27500A" }
+      : nota >= 2
+      ? { background: "#FAEEDA", color: "#633806" }
+      : { background: "#FCEBEB", color: "#791F1F" };
+  };
+
+  if (loading) return (
+    <main style={{ minHeight: "100vh", background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <p style={{ color: textoS }}>Cargando perfil...</p>
+    </main>
+  );
+  if (error) return (
+    <main style={{ minHeight: "100vh", background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <p style={{ color: "red" }}>{error}</p>
+    </main>
+  );
+
+  const promedioGeneral = calcularPromedioGeneral();
+  const secciones = [
+    { id: "perfil", label: "Mi perfil" },
+    { id: "materias", label: "Mis materias" },
+    { id: "notas", label: "Mis notas" },
+    { id: "horario", label: "Horario" },
+  ];
+
+  return (
+    <main style={{ minHeight: "100vh", background: bg, padding: "24px" }}>
+
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <h1 style={{ color: textoS, fontSize: "22px", fontWeight: "500", margin: 0 }}>Sistema de Notas</h1>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {/* ✅ Botón PDF */}
+          <button
+            onClick={generarPdf}
+            disabled={generandoPdf}
+            style={{ ...btnPrimario, background: "#004f39", display: "flex", alignItems: "center", gap: "6px" }}
+          >
+            {generandoPdf ? "Generando..." : "Descargar calificaciones PDF"}
+          </button>
+          <button onClick={toggleDarkMode} style={btnSecundario}>{darkMode ? "☀ Modo claro" : "☾ Modo oscuro"}</button>
+          <button onClick={handleLogout} style={btnSecundario}>Cerrar sesión</button>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: "16px" }}>
+
+        {/* Sidebar */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div style={{ background: cardBg, border: cardBorder, borderRadius: "12px", padding: "16px", marginBottom: "8px", textAlign: "center" }}>
+            <div onClick={() => fileInputRef.current.click()} style={{ width: "64px", height: "64px", borderRadius: "50%", margin: "0 auto 8px", overflow: "hidden", background: darkMode ? "#3a3a3a" : "#E6F1FB", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: `2px solid ${textoS}` }}>
+              {perfil?.foto ? <img src={perfil.foto} alt="Foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontWeight: "500", fontSize: "18px", color: textoS }}>{iniciales}</span>}
+            </div>
+            <input type="file" ref={fileInputRef} accept="image/*" style={{ display: "none" }} onChange={handleFotoChange} />
+            <p style={{ margin: "0 0 2px", fontWeight: "500", fontSize: "14px", color: textoP }}>{perfil?.nombreCompleto?.nombres} {perfil?.nombreCompleto?.apellidos}</p>
+            <p style={{ margin: 0, fontSize: "12px", color: textoS }}>Estudiante</p>
+            <p style={{ margin: "6px 0 0", fontSize: "11px", color: textoS, opacity: 0.7 }}>Clic en la foto para cambiarla</p>
+          </div>
+
+          {secciones.map(item => (
+            <button key={item.id} onClick={() => setSeccion(item.id)} style={{ background: seccion === item.id ? textoS : cardBg, color: seccion === item.id ? (darkMode ? "#1a1a1a" : "white") : textoP, border: cardBorder, borderRadius: "8px", padding: "10px 14px", textAlign: "left", cursor: "pointer", fontSize: "14px", fontWeight: seccion === item.id ? "500" : "400" }}>
+              {item.label}
+            </button>
+          ))}
+
+          {/* Métricas reales */}
+          <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            {[
+              { label: "Materias cursando", value: matriculas.length },
+              { label: "Promedio general", value: promedioGeneral !== null ? promedioGeneral.toFixed(2) : "—" },
+              { label: "Programa", value: perfil?.programa?.nombre ?? "—" },
+            ].map(m => (
+              <div key={m.label} style={{ background: metricaBg, borderRadius: "8px", padding: "10px 14px" }}>
+                <p style={{ margin: "0 0 2px", fontSize: "11px", color: textoS }}>{m.label}</p>
+                <p style={{ margin: 0, fontSize: m.label === "Programa" ? "12px" : "20px", fontWeight: "500", color: textoP }}>{m.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contenido principal */}
+        <div style={{ background: cardBg, border: cardBorder, borderRadius: "12px", padding: "24px" }}>
+
+          {/* ── PERFIL ── */}
+          {seccion === "perfil" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "500", color: textoP }}>Mi perfil</h2>
+                {!editando
+                  ? <button onClick={() => setEditando(true)} style={btnPrimario}>Editar datos</button>
+                  : <div style={{ display: "flex", gap: "8px" }}>
+                      <button onClick={() => setEditando(false)} style={btnSecundario}>Cancelar</button>
+                      <button onClick={handleGuardarEdicion} disabled={guardando} style={btnPrimario}>{guardando ? "Guardando..." : "Guardar"}</button>
+                    </div>
+                }
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                {[
+                  { label: "Nombres", value: perfil?.nombreCompleto?.nombres, key: null },
+                  { label: "Apellidos", value: perfil?.nombreCompleto?.apellidos, key: null },
+                  { label: "Documento", value: perfil?.documento, key: null },
+                  { label: "Tipo documento", value: perfil?.tipoDocumento, key: null },
+                  { label: "Correo", value: perfil?.correo, key: "correo" },
+                  { label: "Celular", value: perfil?.numeroCelular, key: "numeroCelular" },
+                  { label: "Programa académico", value: perfil?.programa?.nombre, key: null },
+                ].map(campo => (
+                  <div key={campo.label}>
+                    <p style={{ margin: "0 0 4px", fontSize: "12px", color: textoS, fontWeight: "500" }}>{campo.label}</p>
+                    {editando && campo.key
+                      ? <input value={formEdit[campo.key] || ""} onChange={e => setFormEdit({ ...formEdit, [campo.key]: e.target.value })} style={inputStyle} />
+                      : <p style={{ margin: 0, fontSize: "14px", color: textoP }}>{campo.value ?? "—"}</p>
+                    }
+                  </div>
+                ))}
+              </div>
+
+              {/* Métricas reales en perfil */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "24px" }}>
+                <div style={{ background: metricaBg, borderRadius: "8px", padding: "14px 16px" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "12px", color: textoS }}>Materias cursando</p>
+                  <p style={{ margin: 0, fontSize: "28px", fontWeight: "500", color: textoP }}>{matriculas.length}</p>
+                </div>
+                <div style={{ background: promedioGeneral !== null ? (promedioGeneral >= 3 ? "#EAF3DE" : "#FCEBEB") : metricaBg, borderRadius: "8px", padding: "14px 16px" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "12px", color: textoS }}>Promedio general</p>
+                  <p style={{ margin: 0, fontSize: "28px", fontWeight: "500", color: promedioGeneral !== null ? (promedioGeneral >= 3 ? "#27500A" : "#791F1F") : textoP }}>
+                    {promedioGeneral !== null ? promedioGeneral.toFixed(2) : "—"}
+                  </p>
+                </div>
+                <div style={{ background: metricaBg, borderRadius: "8px", padding: "14px 16px" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "12px", color: textoS }}>Materias aprobadas</p>
+                  <p style={{ margin: 0, fontSize: "28px", fontWeight: "500", color: textoP }}>
+                    {matriculas.filter(m => { const n = calcularNotaFinal(m.id); return n !== null && n >= 3; }).length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Resumen por materia en perfil */}
+              {matriculas.length > 0 && (
+                <div style={{ marginTop: "20px" }}>
+                  <p style={{ margin: "0 0 12px", fontSize: "13px", fontWeight: "500", color: textoS }}>Resumen de materias</p>
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    {matriculas.map(m => {
+                      const nota = calcularNotaFinal(m.id);
+                      return (
+                        <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: metricaBg, borderRadius: "8px", padding: "10px 14px" }}>
+                          <span style={{ fontSize: "13px", color: textoP }}>{m.grupo?.materia?.nombre}</span>
+                          {nota !== null
+                            ? <span style={{ fontSize: "14px", fontWeight: "500", padding: "3px 10px", borderRadius: "20px", ...colorNota(nota) }}>{nota.toFixed(2)}</span>
+                            : <span style={{ fontSize: "12px", color: textoS }}>Pendiente</span>
+                          }
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── MATERIAS ── */}
+          {seccion === "materias" && (
+            <div>
+              <h2 style={{ margin: "0 0 20px", fontSize: "18px", fontWeight: "500", color: textoP }}>Mis materias</h2>
+              {matriculas.length === 0 ? (
+                <p style={{ color: textoS, fontSize: "14px" }}>No tienes materias matriculadas aún.</p>
+              ) : (
+                <div style={{ display: "grid", gap: "12px" }}>
+                  {matriculas.map(matricula => {
+                    const nota = calcularNotaFinal(matricula.id);
+                    return (
+                      <div key={matricula.id} style={{ background: darkMode ? "#333" : "var(--color-primario)", border: cardBorder, borderRadius: "12px", padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <p style={{ margin: "0 0 4px", fontWeight: "500", fontSize: "15px", color: textoP }}>{matricula.grupo?.materia?.nombre}</p>
+                          <p style={{ margin: "0 0 2px", fontSize: "13px", color: textoS }}>Grupo: {matricula.grupo?.nombre} · Semestre: {matricula.grupo?.semestre ?? "—"}</p>
+                          <p style={{ margin: 0, fontSize: "12px", color: textoS, opacity: 0.8 }}>
+                            Profesor: {matricula.grupo?.profesor?.nombreCompleto?.nombres} {matricula.grupo?.profesor?.nombreCompleto?.apellidos}
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          {nota !== null && (
+                            <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "13px", fontWeight: "500", ...colorNota(nota) }}>
+                              {nota.toFixed(2)}
+                            </span>
+                          )}
+                          <button
+                            onClick={async () => {
+                              await cargarCalificaciones(matricula.id);
+                              setMatriculaSeleccionada(matricula);
+                              setSeccion("notas");
+                            }}
+                            style={{ ...btnPrimario, padding: "6px 14px", fontSize: "12px" }}
+                          >
+                            Ver notas
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── NOTAS ── */}
+          {seccion === "notas" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "500", color: textoP }}>
+                  Mis notas {matriculaSeleccionada ? `— ${matriculaSeleccionada.grupo?.materia?.nombre}` : ""}
+                </h2>
+                <button onClick={() => setSeccion("materias")} style={{ ...btnSecundario, padding: "6px 14px", fontSize: "12px" }}>← Volver</button>
+              </div>
+
+              {matriculaSeleccionada ? (
+                <div>
+                  {[1, 2, 3].map(momento => {
+                    const cals = calificacionesMap[matriculaSeleccionada.id] ?? [];
+                    const notas = cals.filter(c => c.momento === momento);
+                    const promedio = calcularPromedioMomento(cals, momento);
+                    return (
+                      <div key={momento} style={{ background: darkMode ? "#333" : "var(--color-primario)", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                          <p style={{ margin: 0, fontWeight: "500", fontSize: "14px", color: textoP }}>
+                            Momento {momento} ({momento === 3 ? "40%" : "30%"})
+                          </p>
+                          {promedio !== null && (
+                            <span style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "13px", fontWeight: "500", ...colorNota(promedio) }}>
+                              Promedio: {promedio.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+                          {TIPOS.map(tipo => {
+                            const cal = notas.find(c => c.tipo === tipo);
+                            return (
+                              <div key={tipo} style={{ background: cardBg, borderRadius: "8px", padding: "12px", textAlign: "center", border: cardBorder }}>
+                                <p style={{ margin: "0 0 4px", fontSize: "11px", color: textoS }}>{TIPOS_LABEL[tipo]}</p>
+                                <p style={{ margin: "0 0 6px", fontSize: "10px", color: textoS, opacity: 0.7 }}>{tipo === "EXAMEN_FINAL" ? "40%" : "20%"}</p>
+                                {cal
+                                  ? <span style={{ fontSize: "22px", fontWeight: "500", ...colorNota(cal.nota) }}>{cal.nota.toFixed(1)}</span>
+                                  : <span style={{ fontSize: "18px", color: textoS, opacity: 0.5 }}>—</span>
+                                }
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Nota final */}
+                  {(() => {
+                    const notaFinal = calcularNotaFinal(matriculaSeleccionada.id);
+                    return (
+                      <div style={{ background: notaFinal !== null ? (notaFinal >= 3 ? "#EAF3DE" : "#FCEBEB") : metricaBg, borderRadius: "12px", padding: "20px", textAlign: "center", border: cardBorder }}>
+                        <p style={{ margin: "0 0 8px", fontSize: "13px", color: textoS }}>Nota final del curso</p>
+                        {notaFinal !== null
+                          ? <p style={{ margin: 0, fontSize: "40px", fontWeight: "500", color: notaFinal >= 3 ? "#27500A" : "#791F1F" }}>{notaFinal.toFixed(2)}</p>
+                          : <p style={{ margin: 0, fontSize: "15px", color: textoS }}>Pendiente — faltan notas por registrar</p>
+                        }
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div style={{ textAlign: "center", padding: "40px", color: textoS, fontSize: "14px", border: cardBorder, borderRadius: "12px" }}>
+                  Selecciona una materia desde "Mis materias" para ver tus notas.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── HORARIO ── */}
+          {seccion === "horario" && (
+            <div>
+              <h2 style={{ margin: "0 0 20px", fontSize: "18px", fontWeight: "500", color: textoP }}>Mi horario</h2>
+              {matriculas.length === 0 ? (
+                <p style={{ color: textoS, fontSize: "14px" }}>No tienes materias matriculadas aún.</p>
+              ) : (
+                <>
+                  <p style={{ color: textoS, fontSize: "13px", marginBottom: "16px" }}>
+                    Estas son tus materias matriculadas para el semestre actual.
+                  </p>
+                  <div style={{ display: "grid", gap: "12px" }}>
+                    {matriculas.map((matricula, index) => (
+                      <div key={matricula.id} style={{ background: darkMode ? "#333" : "var(--color-primario)", border: cardBorder, borderRadius: "12px", padding: "16px", display: "grid", gridTemplateColumns: "auto 1fr", gap: "16px", alignItems: "center" }}>
+                        <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: textoS, display: "flex", alignItems: "center", justifyContent: "center", color: darkMode ? "#1a1a1a" : "white", fontWeight: "500", fontSize: "16px" }}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p style={{ margin: "0 0 4px", fontWeight: "500", fontSize: "15px", color: textoP }}>{matricula.grupo?.materia?.nombre}</p>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "8px" }}>
+                            <div>
+                              <p style={{ margin: "0 0 2px", fontSize: "11px", color: textoS }}>Grupo</p>
+                              <p style={{ margin: 0, fontSize: "13px", color: textoP }}>{matricula.grupo?.nombre}</p>
+                            </div>
+                            <div>
+                              <p style={{ margin: "0 0 2px", fontSize: "11px", color: textoS }}>Semestre</p>
+                              <p style={{ margin: 0, fontSize: "13px", color: textoP }}>{matricula.grupo?.semestre ?? "—"}</p>
+                            </div>
+                            <div>
+                              <p style={{ margin: "0 0 2px", fontSize: "11px", color: textoS }}>Cupo</p>
+                              <p style={{ margin: 0, fontSize: "13px", color: textoP }}>{matricula.grupo?.cupoMaximo ?? "—"} estudiantes</p>
+                            </div>
+                            <div style={{ gridColumn: "1 / -1" }}>
+                              <p style={{ margin: "0 0 2px", fontSize: "11px", color: textoS }}>Profesor</p>
+                              <p style={{ margin: 0, fontSize: "13px", color: textoP }}>
+                                {matricula.grupo?.profesor?.nombreCompleto?.nombres} {matricula.grupo?.profesor?.nombreCompleto?.apellidos}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: "16px", padding: "12px 16px", background: metricaBg, borderRadius: "8px", fontSize: "12px", color: textoS }}>
+                    El horario detallado con días y horas estará disponible próximamente cuando se configure en el sistema.
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+        </div>
+      </div>
+    </main>
+  );
+};
+
+export default EstudianteDashboard;
