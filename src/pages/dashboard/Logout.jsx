@@ -1,20 +1,18 @@
-impo656rt { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 export const Logout = () => {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const handleLogin = (e) => {
+    e.preventDefault();
 
-     const handleLogin = (e) => {
+    navigate("/login");
+  };
+
+  const handleDashboard = (e) => {
     e.preventDefault();
-    
-    navigate('/login'); 
-    
-    };
-    
-     const handleDashboard = (e) => {
-    e.preventDefault();
-    
-    navigate('/dashboard'); 
+
+    navigate("/dashboard");
   };
 
   return (
@@ -27,27 +25,29 @@ export const Logout = () => {
           Has cerrado sesión del Sistema de Notas del CESDE.
         </p>
         <div className="flex justify-center items-center">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleLogin}
             className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md
             hover:bg-blue-700 hover:shadow-lg
             focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
-            transition duration-300 ease-in-out">
-                Iniciar sesion
+            transition duration-300 ease-in-out"
+          >
+            Iniciar sesion
           </button>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleDashboard}
             className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md
             hover:bg-blue-700 hover:shadow-lg
             focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
-            transition duration-300 ease-in-out">
-               Ir al dashboard
+            transition duration-300 ease-in-out"
+          >
+            Ir al dashboard
           </button>
         </div>
       </section>
     </main>
-  )
-}
+  );
+};

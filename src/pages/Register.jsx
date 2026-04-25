@@ -50,15 +50,14 @@ export const Register = () => {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleRegister = async (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
 
     if (!validarFormulario()) return;
 
     try {
-      // Cargar usuarios existentes del localStorage
-      const usuariosGuardados = localStorage.getItem("admon_usuarios");
-      const usuarios = usuariosGuardados ? JSON.parse(usuariosGuardados) : [];
+      // Cargar usuarios existentes de la base de datos unificada
+      const usuarios = JSON.parse(localStorage.getItem("usuarios_db") || "[]");
 
       // Validar duplicados
       if (usuarios.some((u) => u.correo === formData.correo)) {
@@ -70,37 +69,29 @@ export const Register = () => {
         return;
       }
 
-      // Crear nuevo usuario con la misma estructura que el backend
+      // Crear nuevo usuario
       const nuevoUsuario = {
         id: crypto.randomUUID(),
-        fechaCreacion: new Date().toISOString(),
-        fechaModificacion: new Date().toISOString(),
-        nombreCompleto: {
-          nombres: formData.nombres,
-          apellidos: formData.apellidos,
-        },
+        nombres: formData.nombres,
+        apellidos: formData.apellidos,
         tipoDocumento: formData.tipoDocumento,
         documento: formData.documento,
         correo: formData.correo,
         numeroCelular: formData.numeroCelular,
         contraseña: formData.password,
-        contraseñaConfirmada: formData.confirmPassword,
-        rol: null,
+        rol: null, // El admin asignará el rol
+        token: `token-${Date.now()}`,
+        tokenRegistro: `reg-${Date.now()}`,
         estado: "ACTIVO",
-        envioCorreo: null,
         registro: "INCOMPLETO",
       };
 
-      // Guardar en localStorage
-      const usuariosActualizados = [...usuarios, nuevoUsuario];
-      localStorage.setItem(
-        "admon_usuarios",
-        JSON.stringify(usuariosActualizados),
-      );
+      // Guardar en usuarios_db
+      usuarios.push(nuevoUsuario);
+      localStorage.setItem("usuarios_db", JSON.stringify(usuarios));
 
-      console.log("Usuario guardado:", nuevoUsuario);
       alert(
-        "Usuario registrado correctamente. Revisa tu correo electrónico para continuar con el registro.",
+        "Usuario registrado correctamente. Revisa tu correo electrónico para continuar con el registro (Simulado). El administrador debe asignarte un rol."
       );
       navigate("/login");
     } catch (error) {
@@ -119,143 +110,58 @@ export const Register = () => {
           Formulario de Registro
         </h1>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Nombres
-          </label>
-          <input
-            type="text"
-            name="nombres"
-            placeholder="Nombres"
-            value={formData.nombres}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-acento)]">Nombres</label>
+            <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-lg" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-acento)]">Apellidos</label>
+            <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-lg" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-acento)]">Tipo Doc.</label>
+            <select name="tipoDocumento" value={formData.tipoDocumento} onChange={handleChange} className="mt-1 w-full p-2 border rounded-lg">
+              <option value="CC">Cédula</option>
+              <option value="TI">Tarjeta de identidad</option>
+              <option value="PP">Pasaporte</option>
+              <option value="CE">Cédula extranjera</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-acento)]">Documento</label>
+            <input type="text" name="documento" value={formData.documento} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-lg" />
+            {errores.documento && <p className="text-red-500 text-xs">{errores.documento}</p>}
+          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Apellidos
-          </label>
-          <input
-            type="text"
-            name="apellidos"
-            placeholder="Apellidos"
-            value={formData.apellidos}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
+          <label className="block text-sm font-medium text-[var(--color-acento)]">Correo</label>
+          <input type="email" name="correo" value={formData.correo} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-lg" />
+          {errores.correo && <p className="text-red-500 text-xs">{errores.correo}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Tipo de documento
-          </label>
-          <select
-            name="tipoDocumento"
-            value={formData.tipoDocumento}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          >
-            <option value="CC">Cédula</option>
-            <option value="TI">Tarjeta de identidad</option>
-            <option value="PP">Pasaporte</option>
-            <option value="CE">Cédula extranjera</option>
-          </select>
+          <label className="block text-sm font-medium text-[var(--color-acento)]">Celular</label>
+          <input type="text" name="numeroCelular" value={formData.numeroCelular} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-lg" />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Número de documento
-          </label>
-          <input
-            type="text"
-            name="documento"
-            placeholder="Número de documento"
-            value={formData.documento}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
-          {errores.documento && (
-            <p className="text-red-500 text-sm mt-1">{errores.documento}</p>
-          )}
+          <label className="block text-sm font-medium text-[var(--color-acento)]">Contraseña</label>
+          <input type="password" name="password" value={formData.password} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-lg" />
+          {errores.password && <p className="text-red-500 text-xs">{errores.password}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Correo electrónico
-          </label>
-          <input
-            type="email"
-            name="correo"
-            placeholder="Correo electrónico"
-            value={formData.correo}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
-          {errores.correo && (
-            <p className="text-red-500 text-sm mt-1">{errores.correo}</p>
-          )}
+          <label className="block text-sm font-medium text-[var(--color-acento)]">Confirmar Contraseña</label>
+          <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-lg" />
+          {errores.confirmPassword && <p className="text-red-500 text-xs">{errores.confirmPassword}</p>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Número de celular
-          </label>
-          <input
-            type="text"
-            name="numeroCelular"
-            placeholder="Número de celular"
-            value={formData.numeroCelular}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Contraseña
-          </label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Contraseña"
-            value={formData.password}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
-          {errores.password && (
-            <p className="text-red-500 text-sm mt-1">{errores.password}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Confirmar contraseña
-          </label>
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirmar contraseña"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
-          {errores.confirmPassword && (
-            <p className="text-red-500 text-sm mt-1">
-              {errores.confirmPassword}
-            </p>
-          )}
-        </div>
-
-        <div className="text-center pt-4">
-          <button
-            type="submit"
-            className="w-full px-6 py-3 bg-[var(--color-secundario)] text-white font-semibold rounded-lg"
-          >
-            Registrar
-          </button>
-        </div>
+        <button type="submit" className="w-full bg-[var(--color-secundario)] text-white py-3 rounded-lg font-semibold mt-4">Registrar</button>
       </form>
     </main>
   );

@@ -1,13 +1,80 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// ── Unificación de base de datos local ──
+const inicializarDB = () => {
+  if (!localStorage.getItem('usuarios_db')) {
+    const usuarios = [
+      {
+        id: '1',
+        correo: 'admin@sistema.edu',
+        contraseña: 'Admin123!',
+        rol: 'ADMINISTRADOR',
+        nombres: 'Carlos',
+        apellidos: 'Administrador',
+        token: 'token-admin-001',
+      },
+      {
+        id: '2',
+        correo: 'profesor@sistema.edu',
+        contraseña: 'Profesor1!',
+        rol: 'PROFESOR',
+        nombres: 'Ana',
+        apellidos: 'García',
+        token: 'token-profesor-002',
+      },
+      {
+        id: '3',
+        correo: 'estudiante@sistema.edu',
+        contraseña: 'Estudiante1!',
+        rol: 'ESTUDIANTE',
+        nombres: 'Luis',
+        apellidos: 'Martínez',
+        token: 'token-estudiante-003',
+      },
+    ];
+    localStorage.setItem('usuarios_db', JSON.stringify(usuarios));
+  }
+
+  if (!localStorage.getItem('programas_db')) {
+    const programas = [
+      { id: '1', nombre: 'Ingeniería de Sistemas', modalidad: 'Presencial', estado: 'ACTIVO' },
+      { id: '2', nombre: 'Administración de Empresas', modalidad: 'Virtual', estado: 'ACTIVO' },
+    ];
+    localStorage.setItem('programas_db', JSON.stringify(programas));
+  }
+
+  if (!localStorage.getItem('materias_db')) {
+    const materias = [
+      { id: '1', nombre: 'Cálculo Diferencial', estado: 'ACTIVO' },
+      { id: '2', nombre: 'Programación Básica', estado: 'ACTIVO' },
+    ];
+    localStorage.setItem('materias_db', JSON.stringify(materias));
+  }
+
+  if (!localStorage.getItem('grupos_db')) {
+    const grupos = [
+      { id: '1', nombre: 'Grupo A', semestre: '2026-1', cupoMaximo: 30, materiaId: '1', profesorId: '2', estado: 'ACTIVO' },
+    ];
+    localStorage.setItem('grupos_db', JSON.stringify(grupos));
+  }
+
+  if (!localStorage.getItem('matriculas_db')) {
+    const matriculas = [
+      { id: '1', estudianteId: '3', grupoId: '1', estado: 'ACTIVO' },
+    ];
+    localStorage.setItem('matriculas_db', JSON.stringify(matriculas));
+  }
+};
+
 const Login = () => {
   const navigate = useNavigate();
+  inicializarDB();
 
   const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
-  const [correoRecuperacion, setCorreoRecuperacion] = useState("");
+  const [correoRecuperacion, setCorreoRecuperacion] = useState('');
   const [enviandoRecuperacion, setEnviandoRecuperacion] = useState(false);
-  const [mensajeRecuperacion, setMensajeRecuperacion] = useState("");
+  const [mensajeRecuperacion, setMensajeRecuperacion] = useState('');
 
   const [formData, setFormData] = useState({ correo: '', contraseña: '' });
   const [error, setError] = useState(null);
@@ -16,77 +83,59 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     setError(null);
 
-    try {
-      const response = await fetch("http://localhost:8081/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+    const usuarios = JSON.parse(localStorage.getItem('usuarios_db') || '[]');
+    const usuario = usuarios.find(
+      (u) => u.correo === formData.correo && u.contraseña === formData.contraseña
+    );
 
-      const data = await response.json();
+    if (!usuario) {
+      setError('Correo o contraseña incorrectos');
+      return;
+    }
 
-      if (!response.ok) {
-        setError(data.error || "Error al iniciar sesión");
-        return;
-      }
+    localStorage.setItem('token', usuario.token || 'fake-token');
+    localStorage.setItem('rol', usuario.rol);
+    localStorage.setItem('id', usuario.id);
+    localStorage.setItem('nombres', usuario.nombres);
+    localStorage.setItem('apellidos', usuario.apellidos);
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("rol", data.rol);
-      localStorage.setItem("id", data.id);
-      localStorage.setItem("nombres", data.nombres);
-      localStorage.setItem("apellidos", data.apellidos);
-
-      switch (data.rol) {
-        case "ESTUDIANTE":
-          navigate("/dashboard/estudiante");
-          break;
-        case "PROFESOR":
-          navigate("/dashboard/profesor");
-          break;
-        case "ADMINISTRADOR":
-        case "SUPER_ADMIN":
-          navigate("/admonMain");
-          break;
-        default:
-          setError("Rol no reconocido");
-      }
-
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo conectar con el servidor");
+    switch (usuario.rol) {
+      case 'ESTUDIANTE':
+        navigate('/dashboard/estudiante');
+        break;
+      case 'PROFESOR':
+        navigate('/dashboard/profesor');
+        break;
+      case 'ADMINISTRADOR':
+      case 'SUPER_ADMIN':
+        navigate('/admonMain');
+        break;
+      default:
+        setError('Rol no reconocido');
     }
   };
 
-  const handleRecuperacion = async (e) => {
+  const handleRecuperacion = (e) => {
     e.preventDefault();
     setEnviandoRecuperacion(true);
-    setMensajeRecuperacion("");
+    setMensajeRecuperacion('');
 
-    try {
-      const response = await fetch("http://localhost:8081/api/recuperacion/solicitar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo: correoRecuperacion }),
-      });
+    setTimeout(() => {
+      const usuarios = JSON.parse(localStorage.getItem('usuarios_db') || '[]');
+      const existe = usuarios.find((u) => u.correo === correoRecuperacion);
 
-      if (!response.ok) {
-        const data = await response.json();
-        setMensajeRecuperacion(data.message || "No se pudo enviar el correo");
-        return;
+      if (!existe) {
+        setMensajeRecuperacion('No existe una cuenta con ese correo.');
+      } else {
+        setMensajeRecuperacion('✅ Correo enviado. Revisa tu bandeja de entrada.');
+        setCorreoRecuperacion('');
       }
-
-      setMensajeRecuperacion("✅ Correo enviado. Revisa tu bandeja de entrada.");
-      setCorreoRecuperacion("");
-
-    } catch {
-      setMensajeRecuperacion("No se pudo conectar con el servidor");
-    } finally {
       setEnviandoRecuperacion(false);
-    }
+    }, 800);
   };
 
   return (
@@ -153,7 +202,7 @@ const Login = () => {
                 type="button"
                 onClick={() => {
                   setMostrarRecuperacion(true);
-                  setMensajeRecuperacion("");
+                  setMensajeRecuperacion('');
                 }}
                 className="text-[var(--color-acento)] font-medium py-2"
               >
@@ -189,15 +238,15 @@ const Login = () => {
               disabled={enviandoRecuperacion}
               className="w-full bg-[var(--color-secundario)] text-white py-3 rounded-lg"
             >
-              {enviandoRecuperacion ? "Enviando..." : "Enviar correo"}
+              {enviandoRecuperacion ? 'Enviando...' : 'Enviar correo'}
             </button>
 
             <button
               type="button"
               onClick={() => {
                 setMostrarRecuperacion(false);
-                setMensajeRecuperacion("");
-                setCorreoRecuperacion("");
+                setMensajeRecuperacion('');
+                setCorreoRecuperacion('');
               }}
               className="w-full border border-[var(--color-secundario)] text-[var(--color-secundario)] py-3 rounded-lg"
             >

@@ -1,96 +1,61 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export const FormAdministrador = () => {
   const { token } = useParams();
   const navigate = useNavigate();
 
   const [usuario, setUsuario] = useState(null);
-  const [tituloProfesional, setTituloProfesional] = useState("");
-  const [especializacion, setEspecializacion] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsuario = async () => {
+    setTimeout(() => {
       try {
-        const response = await fetch(
-          `http://localhost:8081/api/usuarios/token/${token}`
-        );
-        if (!response.ok) throw new Error("Token inválido o expirado");
-        const data = await response.json();
-        setUsuario(data);
+        const usuarios = JSON.parse(localStorage.getItem('usuarios_db') || '[]');
+        const found = usuarios.find((u) => u.tokenRegistro === token || u.token === token);
+        if (!found) throw new Error('Enlace de registro inválido o expirado');
+        setUsuario(found);
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
-    };
-    fetchUsuario();
+    }, 400);
   }, [token]);
 
-  if (loading) return (
-    <main className="min-h-screen flex items-center justify-center bg-[var(--color-primario)]">
-      <p className="text-white text-lg animate-pulse">Verificando enlace...</p>
-    </main>
-  );
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    try {
+      const usuarios = JSON.parse(localStorage.getItem('usuarios_db') || '[]');
+      const idx = usuarios.findIndex(u => u.id === usuario.id);
+      
+      if (idx >= 0) {
+        usuarios[idx] = {
+          ...usuarios[idx],
+          registro: 'COMPLETO'
+        };
+        localStorage.setItem('usuarios_db', JSON.stringify(usuarios));
+        alert('Registro de administrador completado.');
+        navigate('/login');
+      } else {
+        throw new Error('Usuario no encontrado');
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
-  if (error) return (
-    <main className="min-h-screen flex items-center justify-center bg-[var(--color-primario)]">
-      <p className="text-red-400 text-lg">{error}</p>
-    </main>
-  );
+  if (loading) return <div className="min-h-screen bg-[var(--color-primario)] flex items-center justify-center text-white">Cargando...</div>;
+  if (error) return <div className="min-h-screen bg-[var(--color-primario)] flex items-center justify-center text-red-400">{error}</div>;
 
   return (
-    <main className="min-h-screen bg-[var(--color-primario)] flex items-center justify-center px-4 py-8">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-4 border border-[var(--color-secundario)]/10"
-      >
-        <h1 className="text-2xl font-bold text-center text-[var(--color-acento)] mb-4">
-          Completar Registro — Administrador
-        </h1>
-
-        <p className="text-center text-gray-500 text-sm">
-          Hola <strong>{usuario?.nombreCompleto?.nombres}</strong>, completa tu información.
-        </p>
-
-        <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Título profesional
-          </label>
-          <input
-            type="text"
-            placeholder="Ej: Administrador de Empresas"
-            value={tituloProfesional}
-            onChange={(e) => setTituloProfesional(e.target.value)}
-            required
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[var(--color-acento)]">
-            Especialización
-          </label>
-          <input
-            type="text"
-            placeholder="Ej: Gestión Educativa"
-            value={especializacion}
-            onChange={(e) => setEspecializacion(e.target.value)}
-            required
-            className="mt-1 w-full p-3 border border-[var(--color-secundario)]/20 rounded-lg"
-          />
-        </div>
-
-        <div className="text-center pt-4">
-          <button
-            type="submit"
-            className="w-full px-6 py-3 bg-[var(--color-secundario)] text-white font-semibold rounded-lg"
-          >
-            Completar registro
-          </button>
-        </div>
+    <main className="min-h-screen bg-[var(--color-primario)] flex items-center justify-center p-4">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-4 text-[var(--color-acento)]">Completar Perfil Administrador</h1>
+        <p className="mb-6 text-gray-600">Hola {usuario.nombres}, solo confirma para completar tu acceso administrativo.</p>
+        
+        <button type="submit" className="w-full bg-[var(--color-secundario)] text-white py-2 rounded font-bold">Confirmar Registro</button>
       </form>
     </main>
   );

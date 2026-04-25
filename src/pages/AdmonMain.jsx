@@ -229,39 +229,32 @@ const AdmonMain = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 300)); // Simular retardo
-        const localPerfil = localStorage.getItem("admon_perfil");
-        const localUsuarios = localStorage.getItem("admon_usuarios");
-        const localProgramas = localStorage.getItem("admon_programas");
-        const localMateriasMap = localStorage.getItem("admon_materiasMap");
-        const localMaterias = localStorage.getItem("admon_materias");
-        const localGrupos = localStorage.getItem("admon_grupos");
-        const localMatriculas = localStorage.getItem("admon_matriculas");
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        
+        const localUsuarios = localStorage.getItem("usuarios_db");
+        const localProgramas = localStorage.getItem("programas_db");
+        const localMateriasMap = localStorage.getItem("materias_programa_db"); // Mapeo programa -> materias
+        const localMaterias = localStorage.getItem("materias_db");
+        const localGrupos = localStorage.getItem("grupos_db");
+        const localMatriculas = localStorage.getItem("matriculas_db");
 
-        const parsedPerfil = localPerfil ? JSON.parse(localPerfil) : mockPerfil;
-        const parsedUsuarios = localUsuarios
-          ? JSON.parse(localUsuarios)
-          : mockUsuarios;
+        // Perfil del admin (usamos el id del login)
+        const allUsers = localUsuarios ? JSON.parse(localUsuarios) : [];
+        const currentAdmin = allUsers.find(u => u.id === id) || mockPerfil;
 
-        setPerfil(parsedPerfil);
-        setUsuarios(parsedUsuarios);
-        setProgramas(
-          localProgramas ? JSON.parse(localProgramas) : mockProgramas,
-        );
+        setPerfil(currentAdmin);
+        setUsuarios(allUsers);
+        setProgramas(localProgramas ? JSON.parse(localProgramas) : []);
         setMateriasMap(localMateriasMap ? JSON.parse(localMateriasMap) : {});
-        setCatalogoMaterias(
-          localMaterias ? JSON.parse(localMaterias) : mockMaterias,
-        );
-        setGrupos(localGrupos ? JSON.parse(localGrupos) : mockGrupos);
-        setMatriculas(
-          localMatriculas ? JSON.parse(localMatriculas) : mockMatriculas,
-        );
+        setCatalogoMaterias(localMaterias ? JSON.parse(localMaterias) : []);
+        setGrupos(localGrupos ? JSON.parse(localGrupos) : []);
+        setMatriculas(localMatriculas ? JSON.parse(localMatriculas) : []);
 
         setFormEdit({
-          correo: parsedPerfil.correo,
-          numeroCelular: parsedPerfil.numeroCelular,
-          tituloProfesional: parsedPerfil.tituloProfesional,
-          especializacion: parsedPerfil.especializacion,
+          correo: currentAdmin.correo || "",
+          numeroCelular: currentAdmin.numeroCelular || "",
+          tituloProfesional: currentAdmin.tituloProfesional || "",
+          especializacion: currentAdmin.especializacion || "",
         });
       } catch (err) {
         setError(err.message);
@@ -274,33 +267,34 @@ const AdmonMain = () => {
 
   // ── Persistencia Local Storage ──
   useEffect(() => {
-    if (!loading && perfil)
-      localStorage.setItem("admon_perfil", JSON.stringify(perfil));
-  }, [perfil, loading]);
-  useEffect(() => {
     if (!loading && Array.isArray(usuarios)) {
-      localStorage.setItem("admon_usuarios", JSON.stringify(usuarios));
+      localStorage.setItem("usuarios_db", JSON.stringify(usuarios));
     }
   }, [usuarios, loading]);
+
   useEffect(() => {
     if (!loading && programas)
-      localStorage.setItem("admon_programas", JSON.stringify(programas));
+      localStorage.setItem("programas_db", JSON.stringify(programas));
   }, [programas, loading]);
+
   useEffect(() => {
     if (!loading && materiasMap)
-      localStorage.setItem("admon_materiasMap", JSON.stringify(materiasMap));
+      localStorage.setItem("materias_programa_db", JSON.stringify(materiasMap));
   }, [materiasMap, loading]);
+
   useEffect(() => {
     if (!loading && catalogoMaterias)
-      localStorage.setItem("admon_materias", JSON.stringify(catalogoMaterias));
+      localStorage.setItem("materias_db", JSON.stringify(catalogoMaterias));
   }, [catalogoMaterias, loading]);
+
   useEffect(() => {
     if (!loading && grupos)
-      localStorage.setItem("admon_grupos", JSON.stringify(grupos));
+      localStorage.setItem("grupos_db", JSON.stringify(grupos));
   }, [grupos, loading]);
+
   useEffect(() => {
     if (!loading && matriculas)
-      localStorage.setItem("admon_matriculas", JSON.stringify(matriculas));
+      localStorage.setItem("matriculas_db", JSON.stringify(matriculas));
   }, [matriculas, loading]);
 
   // ── Foto del admin ──

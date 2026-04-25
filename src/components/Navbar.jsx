@@ -3,6 +3,26 @@ import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const nombres = localStorage.getItem("nombres") || "";
+  const apellidos = localStorage.getItem("apellidos") || "";
+  const rol = localStorage.getItem("rol");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("rol");
+    localStorage.removeItem("id");
+    localStorage.removeItem("nombres");
+    localStorage.removeItem("apellidos");
+    navigate("/login");
+  };
+
+  const getDashboardPath = () => {
+    if (rol === "ADMINISTRADOR" || rol === "SUPER_ADMIN") return "/admonMain";
+    if (rol === "PROFESOR") return "/dashboard/profesor";
+    if (rol === "ESTUDIANTE") return "/dashboard/estudiante";
+    return "/";
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm">
@@ -60,21 +80,40 @@ const Navbar = () => {
 
          {/* Botones derecha */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/login")}
-            className="flex items-center gap-2 border border-[var(--color-secundario)] text-[var(--color-secundario)] px-4 py-2 rounded-lg hover:bg-[var(--color-secundario)] hover:text-white transition"
-          >
-            <LogIn size={16} />
-            Ingresar
-          </button>
+          {token ? (
+            <div className="flex items-center gap-4">
+              <span 
+                onClick={() => navigate(getDashboardPath())}
+                className="text-sm font-medium text-[var(--color-acento)] cursor-pointer hover:text-[var(--color-secundario)] transition"
+              >
+                Hola, {nombres} {apellidos}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 border border-red-500 text-red-500 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition text-sm"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-2 border border-[var(--color-secundario)] text-[var(--color-secundario)] px-4 py-2 rounded-lg hover:bg-[var(--color-secundario)] hover:text-white transition"
+              >
+                <LogIn size={16} />
+                Ingresar
+              </button>
 
-          <button
-            onClick={() => navigate("/registrar")}
-            className="flex items-center gap-2 bg-[var(--color-secundario)] text-white px-4 py-2 rounded-lg hover:scale-105 transition"
-          >
-            <UserPlus size={16} />
-            Registro
-          </button>
+              <button
+                onClick={() => navigate("/registrar")}
+                className="flex items-center gap-2 bg-[var(--color-secundario)] text-white px-4 py-2 rounded-lg hover:scale-105 transition"
+              >
+                <UserPlus size={16} />
+                Registro
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
