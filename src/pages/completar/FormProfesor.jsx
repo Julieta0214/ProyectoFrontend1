@@ -27,3 +27,25 @@ export const FormProfesor = () => {
     };
     fetchUsuario();
   }, [token]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:8081/api/profesores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: usuario.id,
+          tituloProfesional,
+          especializacion,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Error al completar registro");
+
+      alert("Registro completado correctamente");
+      navigate("/login");
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo completar el registro.");
+    }
+  };
