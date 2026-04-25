@@ -19,29 +19,42 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
+
     try {
       const response = await fetch("http://localhost:8081/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+
       const data = await response.json();
+
       if (!response.ok) {
         setError(data.error || "Error al iniciar sesión");
         return;
       }
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("rol", data.rol);
       localStorage.setItem("id", data.id);
       localStorage.setItem("nombres", data.nombres);
       localStorage.setItem("apellidos", data.apellidos);
+
       switch (data.rol) {
-        case "ESTUDIANTE": navigate("/dashboard/estudiante"); break;
-        case "PROFESOR": navigate("/dashboard/profesor"); break;
-        case "ADMINISTRADOR": navigate("/admonMain"); break;
-        case "SUPER_ADMIN": navigate("/admonMain"); break;
-        default: setError("Rol no reconocido");
+        case "ESTUDIANTE":
+          navigate("/dashboard/estudiante");
+          break;
+        case "PROFESOR":
+          navigate("/dashboard/profesor");
+          break;
+        case "ADMINISTRADOR":
+        case "SUPER_ADMIN":
+          navigate("/admonMain");
+          break;
+        default:
+          setError("Rol no reconocido");
       }
+
     } catch (err) {
       console.error(err);
       setError("No se pudo conectar con el servidor");
@@ -52,12 +65,30 @@ const Login = () => {
     e.preventDefault();
     setEnviandoRecuperacion(true);
     setMensajeRecuperacion("");
+
     try {
       const response = await fetch("http://localhost:8081/api/recuperacion/solicitar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo: correoRecuperacion }),
       });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setMensajeRecuperacion(data.message || "No se pudo enviar el correo");
+        return;
+      }
+
+      setMensajeRecuperacion("✅ Correo enviado. Revisa tu bandeja de entrada.");
+      setCorreoRecuperacion("");
+
+    } catch {
+      setMensajeRecuperacion("No se pudo conectar con el servidor");
+    } finally {
+      setEnviandoRecuperacion(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[var(--color-primario)] flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-[var(--color-primario)] rounded-2xl shadow-2xl p-8 border border-[var(--color-secundario)]/10">
@@ -73,6 +104,7 @@ const Login = () => {
 
         {!mostrarRecuperacion && (
           <form onSubmit={handleLogin} className="space-y-6">
+
             <div>
               <label className="block font-semibold text-[var(--color-acento)] mb-2">
                 Correo electrónico
@@ -80,11 +112,10 @@ const Login = () => {
               <input
                 type="email"
                 name="correo"
-                placeholder="Ingrese su correo"
                 value={formData.correo}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-[var(--color-secundario)]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secundario)] transition"
+                className="w-full px-4 py-3 border border-[var(--color-secundario)]/20 rounded-lg"
               />
             </div>
 
@@ -95,18 +126,17 @@ const Login = () => {
               <input
                 type="password"
                 name="contraseña"
-                placeholder="Ingrese su contraseña"
                 value={formData.contraseña}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-[var(--color-secundario)]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secundario)] transition"
+                className="w-full px-4 py-3 border border-[var(--color-secundario)]/20 rounded-lg"
               />
             </div>
 
             <div className="flex flex-col gap-3">
               <button
                 type="submit"
-                className="bg-[var(--color-secundario)] hover:bg-[#003326] text-white font-semibold py-3 px-4 rounded-lg transition shadow-md"
+                className="bg-[var(--color-secundario)] text-white font-semibold py-3 px-4 rounded-lg"
               >
                 Iniciar sesión
               </button>
@@ -114,67 +144,52 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => navigate('/registrar')}
-                className="border border-[var(--color-secundario)] text-[var(--color-secundario)] hover:bg-[var(--color-secundario)] hover:text-white font-semibold py-3 px-4 rounded-lg transition"
+                className="border border-[var(--color-secundario)] text-[var(--color-secundario)] font-semibold py-3 px-4 rounded-lg"
               >
                 Registrar
               </button>
 
               <button
                 type="button"
-                onClick={() => { setMostrarRecuperacion(true); setMensajeRecuperacion(""); }}
-                className="text-[var(--color-acento)] hover:text-[var(--color-secundario)] font-medium py-2 transition"
+                onClick={() => {
+                  setMostrarRecuperacion(true);
+                  setMensajeRecuperacion("");
+                }}
+                className="text-[var(--color-acento)] font-medium py-2"
               >
                 ¿Olvidaste tu contraseña?
               </button>
             </div>
+
           </form>
         )}
 
         {mostrarRecuperacion && (
           <form onSubmit={handleRecuperacion} className="space-y-4">
-            <div>
-              <h2 className="text-lg font-semibold text-[var(--color-acento)] mb-1">
-                Recuperar contraseña
-              </h2>
-              <p className="text-sm text-gray-500 mb-4">
-                Escribe tu correo y te enviaremos un link para restablecer tu contraseña. El link es válido por 1 hora.
-              </p>
-            </div>
 
-            <div>
-              <label className="block font-semibold text-[var(--color-acento)] mb-2">
-                Correo electrónico
-              </label>
-              <input
-                type="email"
-                value={correoRecuperacion}
-                onChange={e => setCorreoRecuperacion(e.target.value)}
-                placeholder="tucorreo@ejemplo.com"
-                required
-                className="w-full px-4 py-3 border border-[var(--color-secundario)]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secundario)] transition"
-              />
-            </div>
+            <h2 className="text-lg font-semibold text-[var(--color-acento)]">
+              Recuperar contraseña
+            </h2>
+
+            <input
+              type="email"
+              value={correoRecuperacion}
+              onChange={e => setCorreoRecuperacion(e.target.value)}
+              placeholder="tucorreo@ejemplo.com"
+              required
+              className="w-full px-4 py-3 border border-[var(--color-secundario)]/20 rounded-lg"
+            />
 
             {mensajeRecuperacion && (
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: mensajeRecuperacion.startsWith("✅") ? "#27500A" : "#791F1F",
-                  background: mensajeRecuperacion.startsWith("✅") ? "#EAF3DE" : "#FCEBEB",
-                  padding: "10px 14px",
-                  borderRadius: "8px"
-                }}
-              >
-                {mensajeRecuperacion}
-              </p>
+              <p>{mensajeRecuperacion}</p>
             )}
 
             <button
               type="submit"
               disabled={enviandoRecuperacion}
-              className="w-full bg-[var(--color-secundario)] text-white font-semibold py-3 px-4 rounded-lg transition shadow-md"
+              className="w-full bg-[var(--color-secundario)] text-white py-3 rounded-lg"
             >
-              {enviandoRecuperacion ? "Enviando..." : "Enviar correo de recuperación"}
+              {enviandoRecuperacion ? "Enviando..." : "Enviar correo"}
             </button>
 
             <button
@@ -184,16 +199,17 @@ const Login = () => {
                 setMensajeRecuperacion("");
                 setCorreoRecuperacion("");
               }}
-              className="w-full border border-[var(--color-secundario)] text-[var(--color-secundario)] font-semibold py-3 px-4 rounded-lg transition"
+              className="w-full border border-[var(--color-secundario)] text-[var(--color-secundario)] py-3 rounded-lg"
             >
-              Volver al login
+              Volver
             </button>
+
           </form>
         )}
 
       </div>
     </main>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
