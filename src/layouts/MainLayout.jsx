@@ -1,7 +1,14 @@
-const MainLayout = () => {
+import { Outlet } from "react-router-dom"
+import Navbar from "../components/navbar"
+import Footer from "../components/footer"
+
+export const MainLayout = () => {
   return (
     <div>
-      <h1>MainLayout</h1>
+        <Navbar></Navbar>
+        <Outlet></Outlet>
+        <Footer></Footer>
     </div>
-  );
-};
+  )
+}
+
