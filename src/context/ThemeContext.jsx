@@ -1,9 +1,27 @@
-const ThemeContext = () => {
+import { createContext, useContext, useState, useEffect } from "react";
+
+const ThemeContext = createContext();
+
+export const ThemeProvider = ({ children }) => {
+  // ✅ Lee la preferencia guardada en sessionStorage al iniciar
+  const [darkMode, setDarkMode] = useState(() => {
+    return sessionStorage.getItem("darkMode") === "true";
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const nuevoValor = !prev;
+      // ✅ Guarda la preferencia en sessionStorage
+      sessionStorage.setItem("darkMode", nuevoValor);
+      return nuevoValor;
+    });
+  };
+
   return (
-    <div>
-      <h1>ThemeContext</h1>
-    </div>
+    <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
+      <div className={darkMode ? "dark-mode" : ""}>{children}</div>
+    </ThemeContext.Provider>
   );
 };
 
-export default ThemeContext;
+export const useTheme = () => useContext(ThemeContext);
