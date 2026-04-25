@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+impo656rt { useNavigate } from 'react-router-dom';
 
 export const Logout = () => {
 
