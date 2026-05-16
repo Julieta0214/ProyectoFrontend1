@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import Notifications from "../../components/Notifications";
 
 const ProfesorDashboard = () => {
   const navigate = useNavigate();
-  const id = localStorage.getItem("id");
+  const { user, logout } = useAuth();
+  const id = user?.id;
   const fileInputRef = useRef(null);
   const { darkMode, toggleDarkMode } = useTheme();
+
 
   const [perfil, setPerfil] = useState(null);
   const [seccion, setSeccion] = useState("perfil");

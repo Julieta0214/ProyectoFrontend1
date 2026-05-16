@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import Notifications from "../../components/Notifications";
 
 const EstudianteDashboard = () => {
   const navigate = useNavigate();
-  const id = localStorage.getItem("id");
+  const { user, logout } = useAuth();
+  const id = user?.id;
   const fileInputRef = useRef(null);
   const { darkMode, toggleDarkMode } = useTheme();
+
 
   const [perfil, setPerfil] = useState(null);
   const [seccion, setSeccion] = useState("perfil");
@@ -184,13 +187,10 @@ const EstudianteDashboard = () => {
   };
 
   const handleLogout = () => { 
-    localStorage.removeItem("token");
-    localStorage.removeItem("rol");
-    localStorage.removeItem("id");
-    localStorage.removeItem("nombres");
-    localStorage.removeItem("apellidos");
-    navigate("/login"); 
+    logout();
+    navigate("/dashboard/logout");
   };
+
 
   const getNombres = (u) => u?.nombres || u?.nombreCompleto?.nombres || "";
   const getApellidos = (u) =>

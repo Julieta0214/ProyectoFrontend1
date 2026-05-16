@@ -1,24 +1,20 @@
 import { GraduationCap, LogIn, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Notifications from "./Notifications";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const nombres = localStorage.getItem("nombres") || "";
-  const apellidos = localStorage.getItem("apellidos") || "";
-  const rol = localStorage.getItem("rol");
+  const { user, isAuthenticated, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("rol");
-    localStorage.removeItem("id");
-    localStorage.removeItem("nombres");
-    localStorage.removeItem("apellidos");
-    navigate("/login");
+    logout();
+    navigate("/dashboard/logout");
   };
 
   const getDashboardPath = () => {
+    if (!user) return "/";
+    const { rol } = user;
     if (rol === "ADMINISTRADOR" || rol === "SUPER_ADMIN") return "/admonMain";
     if (rol === "PROFESOR") return "/dashboard/profesor";
     if (rol === "ESTUDIANTE") return "/dashboard/estudiante";
@@ -81,14 +77,14 @@ const Navbar = () => {
 
          {/* Botones derecha */}
         <div className="flex items-center gap-3">
-          {token ? (
+          {isAuthenticated ? (
             <div className="flex items-center gap-4">
               <Notifications />
               <span 
                 onClick={() => navigate(getDashboardPath())}
                 className="text-sm font-medium text-[var(--color-acento)] cursor-pointer hover:text-[var(--color-secundario)] transition"
               >
-                Hola, {nombres} {apellidos}
+                Hola, {user.nombres} {user.apellidos}
               </span>
               <button
                 onClick={handleLogout}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import Notifications from "../components/Notifications";
 
 // --- Mock Data ---
@@ -22,9 +23,11 @@ const generateId = () => Date.now();
 
 const AdmonMain = () => {
   const navigate = useNavigate();
-  const id = localStorage.getItem("id");
+  const { user, logout } = useAuth();
+  const id = user?.id;
   const fileInputRef = useRef(null);
   const { darkMode, toggleDarkMode } = useTheme();
+
 
   // ── Estados principales ──
   const [perfil, setPerfil] = useState(null);
@@ -576,10 +579,10 @@ const AdmonMain = () => {
 
   // ── Logout ──
   const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    navigate("/login");
+    logout();
+    navigate("/dashboard/logout");
   };
+
 
   const iniciales = perfil
     ? `${perfil.nombreCompleto?.nombres?.[0] ?? ""}${perfil.nombreCompleto?.apellidos?.[0] ?? ""}`
