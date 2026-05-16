@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import Notifications from "../../components/Notifications";
 
 const EstudianteDashboard = () => {
   const navigate = useNavigate();
@@ -248,6 +249,7 @@ const EstudianteDashboard = () => {
           Sistema de Notas
         </h1>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <Notifications />
           <button onClick={toggleDarkMode} style={btnSecundario}>
             {darkMode ? "☀ Modo claro" : "☾ Modo oscuro"}
           </button>

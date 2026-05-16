@@ -4,11 +4,7 @@ import { useNavigate } from "react-router-dom";
 export const LandingPage = () => {
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
-    e.preventDefault();
 
-    navigate("/registrar");
-  };
 
   return (
     <section className="bg-[var(--color-primario)] py-24 overflow-hidden relative">

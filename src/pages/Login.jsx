@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { showAlert } from '../utils/alerts';
 
 // ── Unificación de base de datos local ──
 const inicializarDB = () => {
@@ -74,10 +75,8 @@ const Login = () => {
   const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
   const [correoRecuperacion, setCorreoRecuperacion] = useState('');
   const [enviandoRecuperacion, setEnviandoRecuperacion] = useState(false);
-  const [mensajeRecuperacion, setMensajeRecuperacion] = useState('');
 
   const [formData, setFormData] = useState({ correo: '', contraseña: '' });
-  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,7 +84,6 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    setError(null);
 
     const usuarios = JSON.parse(localStorage.getItem('usuarios_db') || '[]');
     const usuario = usuarios.find(
@@ -93,7 +91,11 @@ const Login = () => {
     );
 
     if (!usuario) {
-      setError('Correo o contraseña incorrectos');
+      showAlert({
+        title: 'Error de acceso',
+        text: 'Correo o contraseña incorrectos',
+        icon: 'error'
+      });
       return;
     }
 
@@ -103,36 +105,58 @@ const Login = () => {
     localStorage.setItem('nombres', usuario.nombres);
     localStorage.setItem('apellidos', usuario.apellidos);
 
+    let targetUrl;
     switch (usuario.rol) {
       case 'ESTUDIANTE':
-        navigate('/dashboard/estudiante');
+        targetUrl = '/dashboard/estudiante';
         break;
       case 'PROFESOR':
-        navigate('/dashboard/profesor');
+        targetUrl = '/dashboard/profesor';
         break;
       case 'ADMINISTRADOR':
       case 'SUPER_ADMIN':
-        navigate('/admonMain');
+        targetUrl = '/admonMain';
         break;
       default:
-        setError('Rol no reconocido');
+        showAlert({
+          title: 'Error',
+          text: 'Rol no reconocido',
+          icon: 'error'
+        });
+        return;
     }
+
+    showAlert({
+      title: '¡Bienvenido!',
+      text: `Hola ${usuario.nombres}, has iniciado sesión correctamente.`,
+      icon: 'success',
+      navigate,
+      url: targetUrl
+    });
   };
 
   const handleRecuperacion = (e) => {
     e.preventDefault();
     setEnviandoRecuperacion(true);
-    setMensajeRecuperacion('');
 
     setTimeout(() => {
       const usuarios = JSON.parse(localStorage.getItem('usuarios_db') || '[]');
       const existe = usuarios.find((u) => u.correo === correoRecuperacion);
 
       if (!existe) {
-        setMensajeRecuperacion('No existe una cuenta con ese correo.');
+        showAlert({
+          title: 'Error',
+          text: 'No existe una cuenta con ese correo.',
+          icon: 'error'
+        });
       } else {
-        setMensajeRecuperacion('✅ Correo enviado. Revisa tu bandeja de entrada.');
+        showAlert({
+          title: 'Correo enviado',
+          text: '✅ Correo enviado. Revisa tu bandeja de entrada.',
+          icon: 'success'
+        });
         setCorreoRecuperacion('');
+        setMostrarRecuperacion(false);
       }
       setEnviandoRecuperacion(false);
     }, 800);
@@ -144,12 +168,6 @@ const Login = () => {
 
         <h1 className="text-3xl font-bold text-center text-[var(--color-acento)] mb-2">LOGIN</h1>
         <p className="text-center text-gray-600 mb-6">Accede a la plataforma académica</p>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-            {error}
-          </div>
-        )}
 
         {!mostrarRecuperacion && (
           <form onSubmit={handleLogin} className="space-y-6">
@@ -202,7 +220,6 @@ const Login = () => {
                 type="button"
                 onClick={() => {
                   setMostrarRecuperacion(true);
-                  setMensajeRecuperacion('');
                 }}
                 className="text-[var(--color-acento)] font-medium py-2"
               >
@@ -229,10 +246,6 @@ const Login = () => {
               className="w-full px-4 py-3 border border-[var(--color-secundario)]/20 rounded-lg"
             />
 
-            {mensajeRecuperacion && (
-              <p>{mensajeRecuperacion}</p>
-            )}
-
             <button
               type="submit"
               disabled={enviandoRecuperacion}
@@ -245,7 +258,6 @@ const Login = () => {
               type="button"
               onClick={() => {
                 setMostrarRecuperacion(false);
-                setMensajeRecuperacion('');
                 setCorreoRecuperacion('');
               }}
               className="w-full border border-[var(--color-secundario)] text-[var(--color-secundario)] py-3 rounded-lg"

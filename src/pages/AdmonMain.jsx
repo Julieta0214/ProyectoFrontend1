@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import Notifications from "../components/Notifications";
 
 // --- Mock Data ---
 const mockPerfil = {
@@ -16,104 +17,8 @@ const mockPerfil = {
   foto: null,
 };
 
-const mockUsuarios = [
-  {
-    id: 1,
-    fechaCreacion: new Date().toISOString(),
-    fechaModificacion: new Date().toISOString(),
-    nombreCompleto: { nombres: "Juan", apellidos: "Perez" },
-    tipoDocumento: "CC",
-    documento: "1001",
-    correo: "juan@example.com",
-    numeroCelular: "311",
-    rol: "ESTUDIANTE",
-    estado: "ACTIVO",
-    envioCorreo: "ENVIADO",
-    registro: "COMPLETO",
-    programa: { nombre: "Ingeniería de Sistemas" },
-  },
-  {
-    id: 2,
-    fechaCreacion: new Date().toISOString(),
-    fechaModificacion: new Date().toISOString(),
-    nombreCompleto: { nombres: "Maria", apellidos: "Gomez" },
-    tipoDocumento: "CC",
-    documento: "1002",
-    correo: "maria@example.com",
-    numeroCelular: "312",
-    rol: "PROFESOR",
-    estado: "ACTIVO",
-    envioCorreo: "ENVIADO",
-    registro: "COMPLETO",
-  },
-  {
-    id: 3,
-    fechaCreacion: new Date().toISOString(),
-    fechaModificacion: new Date().toISOString(),
-    nombreCompleto: { nombres: "Carlos", apellidos: "Ramirez" },
-    tipoDocumento: "TI",
-    documento: "1003",
-    correo: "carlos@example.com",
-    numeroCelular: "313",
-    rol: null,
-    estado: "ACTIVO",
-    envioCorreo: null,
-    registro: "PENDIENTE",
-  },
-];
 
-const mockProgramas = [
-  {
-    id: 1,
-    nombre: "Ingeniería de Sistemas",
-    modalidad: "Presencial",
-    descripcion: "Programa de ingeniería",
-    estado: "ACTIVO",
-  },
-  {
-    id: 2,
-    nombre: "Administración de Empresas",
-    modalidad: "Virtual",
-    descripcion: "Programa de administración",
-    estado: "ACTIVO",
-  },
-];
-
-const mockMaterias = [
-  { id: 1, nombre: "Cálculo Diferencial", estado: "ACTIVO" },
-  { id: 2, nombre: "Programación Básica", estado: "ACTIVO" },
-  { id: 3, nombre: "Física Mecánica", estado: "ACTIVO" },
-];
-
-const mockGrupos = [
-  {
-    id: 1,
-    nombre: "Grupo A",
-    semestre: "2026-1",
-    cupoMaximo: 30,
-    estado: "ACTIVO",
-    materia: mockMaterias[0],
-    profesor: mockUsuarios[1],
-  },
-  {
-    id: 2,
-    nombre: "Grupo B",
-    semestre: "2026-1",
-    cupoMaximo: 25,
-    estado: "ACTIVO",
-    materia: mockMaterias[1],
-    profesor: mockUsuarios[1],
-  },
-];
-
-const mockMatriculas = [
-  {
-    id: 1,
-    estudiante: mockUsuarios[0],
-    grupo: mockGrupos[0],
-    estado: "ACTIVO",
-  },
-];
+const generateId = () => Date.now();
 
 const AdmonMain = () => {
   const navigate = useNavigate();
@@ -401,7 +306,7 @@ const AdmonMain = () => {
           ),
         );
       } else {
-        const nuevo = { ...formPrograma, id: Date.now(), estado: "ACTIVO" };
+        const nuevo = { ...formPrograma, id: generateId(), estado: "ACTIVO" };
         setProgramas((prev) => [...prev, nuevo]);
       }
       setModalPrograma(false);
@@ -457,7 +362,7 @@ const AdmonMain = () => {
         (m) => m.id.toString() === materiaSeleccionada.toString(),
       );
       if (!materia) return;
-      const data = { id: Date.now(), materia };
+      const data = { id: generateId(), materia };
       setMateriasMap((prev) => ({
         ...prev,
         [programaId]: [...(prev[programaId] ?? []), data],
@@ -510,7 +415,7 @@ const AdmonMain = () => {
         );
       } else {
         const nueva = {
-          id: Date.now(),
+          id: generateId(),
           nombre: formMateria.nombre,
           estado: "ACTIVO",
         };
@@ -600,7 +505,7 @@ const AdmonMain = () => {
         );
       } else {
         const nuevo = {
-          id: Date.now(),
+          id: generateId(),
           nombre: formGrupo.nombre,
           semestre: formGrupo.semestre,
           cupoMaximo: formGrupo.cupoMaximo,
@@ -648,7 +553,7 @@ const AdmonMain = () => {
       const grupo = grupos.find(
         (g) => g.id.toString() === formMatricula.grupoId,
       );
-      const nueva = { id: Date.now(), estudiante, grupo, estado: "ACTIVO" };
+      const nueva = { id: generateId(), estudiante, grupo, estado: "ACTIVO" };
       setMatriculas((prev) => [...prev, nueva]);
       setModalMatricula(false);
       alert("Estudiante matriculado correctamente");
@@ -740,6 +645,7 @@ const AdmonMain = () => {
           Sistema de Notas — Administración
         </h1>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <Notifications />
           <button onClick={toggleDarkMode} style={btnSecundario}>
             {darkMode ? "☀ Modo claro" : "☾ Modo oscuro"}
           </button>

@@ -1,5 +1,6 @@
 import { GraduationCap, LogIn, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Notifications from "./Notifications";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           {token ? (
             <div className="flex items-center gap-4">
+              <Notifications />
               <span 
                 onClick={() => navigate(getDashboardPath())}
                 className="text-sm font-medium text-[var(--color-acento)] cursor-pointer hover:text-[var(--color-secundario)] transition"

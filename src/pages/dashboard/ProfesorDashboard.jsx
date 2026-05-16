@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import Notifications from "../../components/Notifications";
 
 const ProfesorDashboard = () => {
   const navigate = useNavigate();
@@ -201,6 +202,7 @@ const ProfesorDashboard = () => {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1 style={{ color: textoS, fontSize: "22px", fontWeight: "500", margin: 0 }}>Sistema de Notas</h1>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <Notifications />
           <button onClick={toggleDarkMode} style={btnSecundario}>{darkMode ? "☀ Modo claro" : "☾ Modo oscuro"}</button>
           <button onClick={handleLogout} style={btnSecundario}>Cerrar sesión</button>
         </div>

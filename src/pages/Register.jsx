@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { showAlert } from "../utils/alerts";
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -61,11 +62,19 @@ export const Register = () => {
 
       // Validar duplicados
       if (usuarios.some((u) => u.correo === formData.correo)) {
-        alert("Ya existe un usuario registrado con ese correo electrónico.");
+        showAlert({
+          title: "Error",
+          text: "Ya existe un usuario registrado con ese correo electrónico.",
+          icon: "error",
+        });
         return;
       }
       if (usuarios.some((u) => u.documento === formData.documento)) {
-        alert("Ya existe un usuario registrado con ese número de documento.");
+        showAlert({
+          title: "Error",
+          text: "Ya existe un usuario registrado con ese número de documento.",
+          icon: "error",
+        });
         return;
       }
 
@@ -90,13 +99,20 @@ export const Register = () => {
       usuarios.push(nuevoUsuario);
       localStorage.setItem("usuarios_db", JSON.stringify(usuarios));
 
-      alert(
-        "Usuario registrado correctamente. Revisa tu correo electrónico para continuar con el registro (Simulado). El administrador debe asignarte un rol."
-      );
-      navigate("/login");
+      showAlert({
+        title: "Registro Exitoso",
+        text: "Usuario registrado correctamente. Revisa tu correo electrónico para continuar con el registro (Simulado). El administrador debe asignarte un rol.",
+        icon: "success",
+        navigate,
+        url: "/login",
+      });
     } catch (error) {
       console.error("Error:", error);
-      alert(`No se pudo registrar el usuario: ${error.message}`);
+      showAlert({
+        title: "Error",
+        text: `No se pudo registrar el usuario: ${error.message}`,
+        icon: "error",
+      });
     }
   };
 
